@@ -147,8 +147,10 @@ async function lerPlanilha(buf){
         prog:[4,5,6,7,8,9,10].map(c=>+T(r,c)||0),ret:[14,15,16,17,18,19,20].map(c=>+T(r,c)||0)})}
     dias.push({dia:d,rows})}
   const filtros=[4,5,6,7,8,9,10].map(c=>String(T(2,c)||''));
-  const cxPlt={},pltCarga={},notas=[];const C=await aba('Config');
-  if(C){const abas=[];for(let r=4;r<=C.max;r++)if(C(r,2))abas.push(String(C(r,2)).trim());
+  const cxPlt={'Coca-Cola Pt 2l':100,'Coca-Cola Zer Pt 2l':100,'Coca-Cola Pt 1l':84,'Coca-Cola Zer Pt 1l':84,'Coca-Cola Pt 600ml':140,'Coca-Cola Zer Pt 600ml':140,'Coca-Cola Lt 350ml':286,'Coca-Cola Zer Lt 350ml':286,'Coca-Cola Pt 1,5l':110,'Coca-Cola Zer Pt 1,5l':110};
+  const pltCarga={'CANAA TT':26,'SIM TT':28},notas=[];const C=await aba('Config');
+  const todas=[...wb.getElementsByTagName('sheet')].map(s=>s.getAttribute('name')).filter(n=>n!=='Total'&&n!=='Config');
+  {let abas=[];if(C)for(let r=4;r<=C.max;r++)if(C(r,2))abas.push(String(C(r,2)).trim());if(!abas.length)abas=todas;
     for(const nm of abas){const A=await aba(nm);if(!A)continue;
       for(let r=3;r<=A.max;r++){const cli=A(r,4),rota=A(r,8),sai=A(r,9);if(!cli||!rota||sai==null)continue;
         let tipo=null,d=null;
