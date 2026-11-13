@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Status de Retiradas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* layout: cabeçalho, abas por dia, 3 números do dia, tabela cliente x produto */
+  --bg:#ffffff; --surface:#f4f7fb; --ink:#14233a; --muted:#5d6b80; --line:#dde4ee;
+  --accent:#1f4e79; --accent-soft:#e3edf7;
+  --ok:#1e7a46; --ok-bg:#dff2e6; --part:#8a5a00; --part-bg:#fdefc8; --prog:#0b63b5; --prog-bg:#e6f0fb;
+  --display:"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Source Sans 3",Arial,Helvetica,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1724; --surface:#162133; --ink:#e7edf6; --muted:#9aa8bd; --line:#26344a;
+  --accent:#7fb2e5; --accent-soft:#1b2c44;
+  --ok:#6fd39a; --ok-bg:#163826; --part:#f2c66b; --part-bg:#3a2e12; --prog:#8cc0f2; --prog-bg:#16304d; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#0f1724; --surface:#162133; --ink:#e7edf6; --muted:#9aa8bd; --line:#26344a;
+  --accent:#7fb2e5; --accent-soft:#1b2c44;
+  --ok:#6fd39a; --ok-bg:#163826; --part:#f2c66b; --part-bg:#3a2e12; --prog:#8cc0f2; --prog-bg:#16304d; color-scheme:dark;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 var(--body)}
+.wrap{max-width:1080px;margin:0 auto;padding:28px 20px 40px;display:grid;gap:22px}
+header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px;border-bottom:3px solid var(--accent);padding-bottom:14px}
+h1{font:700 30px/1.1 var(--display);margin:0;color:var(--accent);text-wrap:balance}
+.sub{color:var(--muted);font-size:14px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+.tabs button{font:600 15px var(--body);border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:8px 16px;border-radius:6px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.tabs button:focus-visible,.legend:focus-visible{outline:3px solid var(--prog);outline-offset:2px}
+.kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.kpi{background:var(--surface);border-radius:8px;padding:14px 16px;display:grid;gap:4px}
+.kpi .lbl{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;font-weight:600}
+.kpi .val{font:600 30px/1 var(--display);font-variant-numeric:tabular-nums}
+.kpi .note{font-size:14px;color:var(--muted)}
+.bar{height:8px;border-radius:4px;background:var(--line);overflow:hidden;display:flex}
+.bar span{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:14px;color:var(--muted)}
+.chip{display:inline-flex;align-items:center;gap:6px}
+.chip i{width:14px;height:14px;border-radius:3px;display:inline-block}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;font-size:15px}
+th,td{padding:8px 9px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+th{background:var(--accent);color:#fff;font:600 13px var(--body);text-transform:uppercase;letter-spacing:.03em;white-space:normal;vertical-align:bottom;line-height:1.2}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:inherit}
+thead th:first-child{background:var(--accent)}
+tbody td:first-child{background:var(--bg);font-weight:600}
+tbody tr:last-child td{border-bottom:none}
+tfoot td{background:var(--accent-soft);font-weight:700;color:var(--accent);border-bottom:none}
+tfoot td:first-child{background:var(--accent-soft)}
+td.c{font-weight:600}
+td.ok{background:var(--ok-bg);color:var(--ok)}
+td.part{background:var(--part-bg);color:var(--part)}
+td.prog{color:var(--prog)}
+td small{display:block;font-weight:400;font-size:12px;opacity:.85}
+td.tot{font-weight:700}
+.foot{font-size:13px;color:var(--muted)}
+@media (max-width:640px){.kpis{grid-template-columns:1fr}h1{font-size:26px}}
+#conteudo[hidden],#msg[hidden]{display:none!important}
+.pick{font-weight:600;color:var(--accent)}
+.pick input{display:block;margin-top:6px;font:inherit}
+.views{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.views button{font:600 14px var(--body);border:0;background:var(--bg);color:var(--ink);padding:7px 14px;cursor:pointer}
+.views button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent)}
+.views button:focus-visible{outline:3px solid var(--prog);outline-offset:-3px}
+.bar2{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+td.muted{color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Status de retiradas &middot; Atacado</h1>
+      <div class="sub" id="upd"></div>
+    </div>
+    <nav class="tabs" role="tablist" id="tabs" aria-label="Dia"></nav>
+  </header>
+  <div id="msg" class="kpi" hidden><span class="lbl">Planilha não carregada</span><span id="msgtxt"></span>
+    <label class="pick" for="arq">Abrir a planilha manualmente</label><input type="file" id="arq" accept=".xlsx"></div>
+  <div id="conteudo" hidden style="display:grid;gap:22px">
+    <section class="kpis" id="kpis"></section>
+    <div class="bar2">
+      <div class="views" role="group" aria-label="Visão">
+        <button type="button" id="vVol" aria-pressed="true">Volume (cx)</button>
+        <button type="button" id="vCar" aria-pressed="false">Cargas</button>
+      </div>
+      <div class="legend" id="legenda"></div>
+    </div>
+    <div class="tbl"><table id="t"></table></div>
+  </div>
+  <p class="foot" id="foot"></p>
+</div>
+<script src="dados.js"></script>
+<script>
+const NOMES={'CANAA TT':'Canaã','SIM TT':'Sim','MARLON':'Marlon','ARAGUAIA':'Araguaia','ALVORADA':'Alvorada','SOL NASC':'Sol Nascente','IMPERIO':'Imperio'};
+const ARQUIVO='Retiradas.xlsx';
+let D=null, dia=0, visao='vol';
+const n0=n=>n?n.toLocaleString('pt-BR'):'';
+const n1=n=>n?n.toLocaleString('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1}):'';
+const pct=(a,b)=>b?Math.round(a/b*100)+'%':'–';
+const soma=a=>a.reduce((x,y)=>x+y,0);
+const key=d=>'d-'+d.replace('/','-');
+
+/* ---------- leitura do .xlsx (sem bibliotecas) ---------- */
+async function inflate(u8){const ds=new DecompressionStream('deflate-raw');const w=ds.writable.getWriter();w.write(u8);w.close();return new Uint8Array(await new Response(ds.readable).arrayBuffer())}
+async function unzip(buf){
+  const dv=new DataView(buf),u8=new Uint8Array(buf),files={},td=new TextDecoder();let e=buf.byteLength-22;
+  while(e>=0&&dv.getUint32(e,true)!==0x06054b50)e--; if(e<0)throw new Error('zip');
+  let n=dv.getUint16(e+10,true),p=dv.getUint32(e+16,true);
+  for(let i=0;i<n;i++){const m=dv.getUint16(p+10,true),cs=dv.getUint32(p+20,true),fl=dv.getUint16(p+28,true),xl=dv.getUint16(p+30,true),cl=dv.getUint16(p+32,true),lo=dv.getUint32(p+42,true);
+    files[td.decode(u8.subarray(p+46,p+46+fl))]={m,cs,lo};p+=46+fl+xl+cl}
+  return async name=>{const f=files[name];if(!f)return null;const l=f.lo,st=l+30+dv.getUint16(l+26,true)+dv.getUint16(l+28,true);
+    const raw=u8.subarray(st,st+f.cs);return td.decode(f.m===8?await inflate(raw):raw)}
+}
+const X=t=>new DOMParser().parseFromString(t,'application/xml');
+function col(ref){let c=0;for(const ch of ref.replace(/\d+/g,''))c=c*26+ch.charCodeAt(0)-64;return c}
+async function lerPlanilha(buf){
+  const get=await unzip(buf);
+  const wb=X(await get('xl/workbook.xml')),rels=X(await get('xl/_rels/workbook.xml.rels'));
+  const ssT=await get('xl/sharedStrings.xml');
+  const ss=ssT?[...X(ssT).getElementsByTagName('si')].map(si=>[...si.getElementsByTagName('t')].map(t=>t.textContent).join('')):[];
+  async function aba(nome){
+    const sh=[...wb.getElementsByTagName('sheet')].find(s=>s.getAttribute('name')===nome); if(!sh)return null;
+    const rid=sh.getAttribute('r:id')||sh.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','id');
+    const tg=[...rels.getElementsByTagName('Relationship')].find(r=>r.getAttribute('Id')===rid).getAttribute('Target').replace(/^\/?xl\//,'').replace(/^\//,'');
+    const doc=X(await get('xl/'+tg)),G={};
+    for(const c of doc.getElementsByTagName('c')){const r=c.getAttribute('r'),t=c.getAttribute('t'),v=c.getElementsByTagName('v')[0];
+      let val=null;if(t==='inlineStr')val=c.textContent;else if(v){val=v.textContent;if(t==='s')val=ss[+val];else if(t!=='str'&&t!=='e')val=+val}
+      const row=+r.replace(/[A-Z]+/g,'');(G[row]=G[row]||{})[col(r)]=val}
+    const cell=(r,c)=>(G[r]||{})[c];cell.max=Math.max(0,...Object.keys(G).map(Number));return cell;
+  }
+  const T=await aba('Total'); if(!T)throw new Error('sem Total');
+  const dias=[];let clientes=null,codigos=null;
+  for(let h=1;h<=T.max;h++){ if(T(h,2)!=='Produto')continue;
+    const hdr=String(T(h,3)||'');const d=(hdr.match(/\d{2}\/\d{2}/)||[hdr])[0];
+    if(!clientes){codigos=[4,5,6,7,8,9,10].map(c=>String(T(h,c)||'').trim());clientes=codigos.map(c=>NOMES[c]||c)}
+    const rows=[];for(let r=h+1;r<=T.max&&T(r,2)!=='Total';r++){ if(!T(r,2))continue;
+      rows.push({nome:String(T(r,2)).trim(),p:String(T(r,2)).replace('Coca-Cola ','').trim(),rac:+T(r,3)||0,
+        prog:[4,5,6,7,8,9,10].map(c=>+T(r,c)||0),ret:[14,15,16,17,18,19,20].map(c=>+T(r,c)||0)})}
+    dias.push({dia:d,rows})}
+  const filtros=[4,5,6,7,8,9,10].map(c=>String(T(2,c)||''));
+  const cxPlt={},pltCarga={},notas=[];const C=await aba('Config');
+  if(C){const abas=[];for(let r=4;r<=C.max;r++)if(C(r,2))abas.push(String(C(r,2)).trim());
+    for(const nm of abas){const A=await aba(nm);if(!A)continue;
+      for(let r=3;r<=A.max;r++){const cli=A(r,4),rota=A(r,8),sai=A(r,9);if(!cli||!rota||sai==null)continue;
+        let tipo=null,d=null;
+        if(typeof sai==='number'){const dt=new Date(Date.UTC(1899,11,30)+Math.round(sai)*86400000);d=String(dt.getUTCDate()).padStart(2,'0')+'/'+String(dt.getUTCMonth()+1).padStart(2,'0');tipo='prog'}
+        else{const m=String(sai).trim().match(/^(RETIRADA|CARREGADA)\s+(\d{2}\/\d{2})/i);if(m){tipo='ret';d=m[2]}}
+        if(tipo)notas.push({cli:String(cli),rota:String(rota).trim(),tipo,d})}}}
+  if(C)for(let r=4;r<=C.max;r++){ if(C(r,4)&&+C(r,5))cxPlt[String(C(r,4)).trim()]=+C(r,5); if(C(r,7)&&+C(r,8))pltCarga[String(C(r,7)).trim()]=+C(r,8)}
+  let atual='';const core=await get('docProps/core.xml');
+  if(core){const m=X(core).getElementsByTagName('dcterms:modified')[0];if(m){const dt=new Date(m.textContent);atual=dt.toLocaleDateString('pt-BR')+', '+dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}}
+  return {clientes,codigos,dias,cxPlt,pltCarga,notas,filtros,atualizado:atual};
+}
+
+/* ---------- visão Volume ---------- */
+function renderVolume(day){
+  let rac=0,prog=0,ret=0;day.rows.forEach(r=>{rac+=r.rac;prog+=soma(r.prog);ret+=soma(r.ret)});
+  document.getElementById('kpis').innerHTML=`
+   <div class="kpi"><span class="lbl">Racional ${day.dia}</span><span class="val">${rac.toLocaleString('pt-BR')}</span><span class="note">cx disponíveis no dia</span></div>
+   <div class="kpi"><span class="lbl">Programado + retirado</span><span class="val">${prog.toLocaleString('pt-BR')}</span>
+     <span class="note">${pct(prog,rac)} do racional</span><div class="bar" aria-hidden="true"><span style="width:${rac?Math.min(100,prog/rac*100):0}%;background:var(--accent)"></span></div></div>
+   <div class="kpi"><span class="lbl">Já retirado</span><span class="val" style="color:var(--ok)">${ret.toLocaleString('pt-BR')}</span>
+     <span class="note">${pct(ret,prog)} do programado &middot; faltam ${(prog-ret).toLocaleString('pt-BR')} cx</span><div class="bar" aria-hidden="true"><span style="width:${prog?ret/prog*100:0}%;background:var(--ok)"></span></div></div>`;
+  document.getElementById('legenda').innerHTML='<span class="chip"><i style="background:var(--prog-bg);border:1px solid var(--prog)"></i>Programado</span><span class="chip"><i style="background:var(--part-bg)"></i>Saiu parte</span><span class="chip"><i style="background:var(--ok-bg)"></i>Saiu tudo</span><span>Em caixas físicas</span>';
+  const cols=D.clientes.map((c,j)=>j).filter(j=>day.rows.some(r=>r.prog[j]>0));
+  const rows=day.rows.filter(r=>r.rac>0||r.prog.some(v=>v>0));
+  let h='<thead><tr><th>Produto</th><th>Racional</th>'+cols.map(j=>`<th>${D.clientes[j]}</th>`).join('')+'<th>Prog. + retirado</th><th>Retirado</th><th>Saldo do racional</th></tr></thead><tbody>';
+  const tc=cols.map(()=>0);const tr=[0,0,0,0];
+  rows.forEach(r=>{const P=soma(r.prog),R=soma(r.ret),s=r.rac-P;tr[0]+=r.rac;tr[1]+=P;tr[2]+=R;tr[3]+=s;
+    h+=`<tr><td>${r.p}</td><td>${n0(r.rac)||'–'}</td>`;
+    cols.forEach((j,k)=>{const p=r.prog[j],x=r.ret[j];tc[k]+=p;if(!p){h+='<td></td>';return}
+      const cls=x>=p?'ok':(x>0?'part':'prog');h+=`<td class="c ${cls}">${n0(p)}${cls==='part'?`<small>saiu ${n0(x)}</small>`:''}</td>`});
+    h+=`<td class="tot">${n0(P)}</td><td class="tot" style="color:var(--ok)">${n0(R)}</td><td style="${s<0?'color:#c0392b;font-weight:700':''}">${s?s.toLocaleString('pt-BR'):''}</td></tr>`});
+  h+=`</tbody><tfoot><tr><td>Total</td><td>${n0(tr[0])}</td>`+tc.map(t=>`<td>${n0(t)}</td>`).join('')+`<td>${n0(tr[1])}</td><td>${n0(tr[2])}</td><td>${tr[3].toLocaleString('pt-BR')}</td></tr></tfoot>`;
+  document.getElementById('t').innerHTML=h;
+  document.getElementById('foot').textContent='Programado + retirado contra o racional do dia, por cliente e produto. Fonte: planilha Retiradas, aba Total.';
+}
+
+/* ---------- visão Cargas ---------- */
+function renderCargas(day){
+  const linhas=[];let semCx=new Set();
+  D.clientes.forEach((nome,j)=>{let pp=0,pr=0;
+    day.rows.forEach(r=>{const cx=D.cxPlt[r.nome];if(!cx){if(r.prog[j])semCx.add(r.p);return}pp+=r.prog[j]/cx;pr+=r.ret[j]/cx});
+    if(pp<=0)return;const pc=D.pltCarga[D.codigos[j]]||0;
+    if(pc){linhas.push({nome,pp,pr,pc,cp:pp/pc,cr:pr/pc,modo:'plt'});return}
+    const re=new RegExp('^'+(D.filtros[j]||nome).replace(/[.+?^${}()|[\]\\]/g,'\\$&').replace(/\*/g,'.*')+'$','i');
+    const rotas={};D.notas.filter(n=>n.d===day.dia&&re.test(n.cli)).forEach(n=>{(rotas[n.rota]=rotas[n.rota]||new Set()).add(n.tipo)});
+    const ks=Object.keys(rotas);const cp=ks.length,cr=ks.filter(k=>rotas[k].size===1&&rotas[k].has('ret')).length;
+    linhas.push({nome,pp,pr,pc:0,cp:cp||null,cr,modo:'rota',rotas:ks})});
+  const T={pp:0,pr:0,cp:0,cr:0};linhas.forEach(l=>{T.pp+=l.pp;T.pr+=l.pr;if(l.cp){T.cp+=l.cp;T.cr+=l.cr}});
+  document.getElementById('kpis').innerHTML=`
+   <div class="kpi"><span class="lbl">Cargas programadas ${day.dia}</span><span class="val">${n1(T.cp)||'0'}</span><span class="note">${n1(T.pp)} paletes no total</span></div>
+   <div class="kpi"><span class="lbl">Cargas que já saíram</span><span class="val" style="color:var(--ok)">${n1(T.cr)||'0'}</span>
+     <span class="note">${pct(T.cr,T.cp)} das cargas programadas</span><div class="bar" aria-hidden="true"><span style="width:${T.cp?T.cr/T.cp*100:0}%;background:var(--ok)"></span></div></div>
+   <div class="kpi"><span class="lbl">Cargas a sair</span><span class="val" style="color:var(--prog)">${n1(T.cp-T.cr)||'0'}</span><span class="note">${n1(T.pp-T.pr)} paletes a sair</span></div>`;
+  document.getElementById('legenda').innerHTML='<span>Canaã e Sim: paletes &divide; paletes por carga. Demais: uma carga por rota nas notas do dia.</span>';
+  let h='<thead><tr><th>Cliente</th><th>Como conta a carga</th><th>Paletes programados</th><th>Paletes retirados</th><th>Cargas programadas</th><th>Cargas que saíram</th><th>Cargas a sair</th></tr></thead><tbody>';
+  linhas.forEach(l=>{const st=l.cp?(l.cr>=l.cp-0.001?'ok':(l.cr>0?'part':'prog')):'';
+    const base=l.modo==='plt'?l.pc:(l.cp?`pela rota <small>${l.rotas.join(', ')}</small>`:'sem rota na planilha');
+    h+=`<tr><td>${l.nome}</td><td class="${l.modo==='plt'?'':'muted'}">${base}</td><td>${n1(l.pp)}</td><td style="color:var(--ok)">${n1(l.pr)}</td>`+
+      (l.cp?`<td class="c ${st}">${n1(l.cp)}</td><td style="color:var(--ok)">${n1(l.cr)||'0'}</td><td class="tot">${n1(l.cp-l.cr)}</td>`:'<td class="muted">–</td><td class="muted">–</td><td class="muted">–</td>')+'</tr>'});
+  if(!linhas.length)h+='<tr><td colspan="7" class="muted">Nada programado neste dia.</td></tr>';
+  h+=`</tbody><tfoot><tr><td>Total</td><td></td><td>${n1(T.pp)}</td><td>${n1(T.pr)}</td><td>${n1(T.cp)}</td><td>${n1(T.cr)}</td><td>${n1(T.cp-T.cr)}</td></tr></tfoot>`;
+  document.getElementById('t').innerHTML=h;
+  document.getElementById('foot').textContent='Paletes calculados pelas caixas por palete de cada produto (aba Config). Para quem não tem paletes por carga na Config, cada rota diferente nas notas do dia conta como uma carga, e ela só conta como saída quando todas as notas da rota estão como RETIRADA.'+(semCx.size?' Sem conversão para: '+[...semCx].join(', ')+'.':'');
+}
+
+function render(){const day=D.dias[dia];
+  document.querySelectorAll('#tabs button').forEach((b,j)=>b.setAttribute('aria-selected',j===dia));
+  document.getElementById('vVol').setAttribute('aria-pressed',visao==='vol');document.getElementById('vCar').setAttribute('aria-pressed',visao==='car');
+  visao==='car'?renderCargas(day):renderVolume(day)}
+function fromHash(){if(!D)return;const i=D.dias.findIndex(d=>'#'+key(d.dia)===location.hash);
+  if(i<0){const h=new Date(),hj=String(h.getDate()).padStart(2,'0')+'/'+String(h.getMonth()+1).padStart(2,'0');const j=D.dias.findIndex(d=>d.dia===hj);dia=j<0?0:j}else dia=i;render()}
+function montar(dados){D=dados;const tabs=document.getElementById('tabs');tabs.innerHTML='';
+  document.getElementById('upd').textContent=D.atualizado?'Planilha salva em '+D.atualizado:'';
+  D.dias.forEach(d=>{const b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.textContent=d.dia;b.onclick=()=>{location.hash=key(d.dia)};tabs.appendChild(b)});
+  document.getElementById('msg').hidden=true;document.getElementById('conteudo').hidden=false;fromHash()}
+function erro(t){document.getElementById('msg').hidden=false;document.getElementById('msgtxt').textContent=t}
+window.addEventListener('hashchange',fromHash);
+document.getElementById('vVol').onclick=()=>{visao='vol';if(D)render()};
+document.getElementById('vCar').onclick=()=>{visao='car';if(D)render()};
+document.getElementById('arq').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;
+  try{montar(await lerPlanilha(await f.arrayBuffer()))}catch(x){erro('Não consegui ler esse arquivo. Confira se é a planilha Retiradas com a aba Total.')}});
+(async()=>{
+  try{ if(window.PLANILHA){const b=atob(String(window.PLANILHA).replace(/-----[^-]+-----/g,'').replace(/\s+/g,''));
+      const u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);montar(await lerPlanilha(u.buffer));return}}catch(x){}
+  try{const r=await fetch(ARQUIVO+'?v='+Date.now(),{cache:'no-store'});if(!r.ok)throw 0;montar(await lerPlanilha(await r.arrayBuffer()))}
+  catch(x){erro('Não encontrei o arquivo Retiradas.xlsx junto desta página. Confira se ele foi enviado com esse nome exato.')}
+})();
+</script>
+</body>
+</html>
